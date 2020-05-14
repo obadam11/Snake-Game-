@@ -9,9 +9,12 @@ let ms = 75;
 const HEIGHT = cvs.height;
 const WIDTH = cvs.width;
 let dir;
+let pages = [true, false, false];
 let score = 0;
+let scores = [];
 let availbale = [];
 for (let i = 0; i <= HEIGHT - scale; i+= 20) availbale.push(i);
+
 
 let snake = {
     x : WIDTH / 2 - 10,
@@ -58,6 +61,15 @@ document.addEventListener("keydown", (e) => {
         if (e.keyCode == 27) {
             pause();
         } 
+        if(e.key == "p") {
+            pages = [false, true, false];
+        }
+        if (e.key == "a") {
+            localStorage.clear();
+        }
+        if (e.key == "c") {
+            pages = [false, false, true];
+        }
 });
 document.addEventListener("mousedown", () => {
     if (overScreen) playAgain();
@@ -65,6 +77,37 @@ document.addEventListener("mousedown", () => {
 let f = {x: snake.x, y: snake.y};
 snake.body.push(f);
 console.log(snake.body[0].x);
+readStrorage();
+function readStrorage() {
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        let value = localStorage.getItem(key);
+        scores.push(value);
+    }
+};
+
+function screens() {
+    if (pages[0]) {
+        ctx.fillStyle = "#1BFC00";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = "white";
+        ctx.font = "30px Comic Sans MS";
+        ctx.fillText("P for Play", WIDTH / 2 - 50, HEIGHT / 2);
+        ctx.fillText("C for Scores", WIDTH / 2 - 70, HEIGHT / 2 - 100);
+    }
+    if (pages[2]) {
+        ctx.fillStyle = "#1BFC00";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        readStrorage();
+        ctx.fillStyle = "white";
+        ctx.font = "15px Comic Sans MS";
+        for (let i = 0; i < scores.length; i++) {
+            let x = WIDTH / 2;
+            let y = i * 30;
+            ctx.fillText(`${i} ${scores[i]}`, x, y);
+        }
+    }
+};
 
 function playAgain() {
     // score = 0;
@@ -102,9 +145,8 @@ function pause() {
   }
 };
 function selfCollision() {
-    // The (i) is bugging when i <= 1.
     for (let i = 0; i < snake.body.length; i++) {
-        if ((i >= 2) && (snake.body[0].x == snake.body[i].x) && (snake.body[0].y == snake.body[i].y)) {
+        if ((i >= 1) && (snake.body[0].x == snake.body[i].x) && (snake.body[0].y == snake.body[i].y)) {
             console.log("Snake collided with itself", snake.body[i].x, snake.body[i].y, i);
             return true;
         }
@@ -112,9 +154,11 @@ function selfCollision() {
     return false;
 };
 function scoring() {
-    ctx.font = "30px Comic Sans MS";
+    if (pages[1]) {
+        ctx.font = "30px Comic Sans MS";
     ctx.fillStyle = "white";
     ctx.fillText(`Score: ${score}`, 20, 40);
+    }
 };
 function borders() {
     if (snake.body[0].x <= 0 - scale) return true;
@@ -146,7 +190,7 @@ function update() {
 
 function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
-    drawBg();
+    if (pages[1]) drawBg();
     drawSnake(snake.x, snake.y);
     // Growing the snake part 🔥🔥🔥
 
@@ -176,6 +220,7 @@ else {
     // Leaving us with a net parts of 1.
 }
     drawFood(food.x, food.y);
+    screens();
 };
 
 console.log(food.x, food.y);
@@ -183,6 +228,7 @@ let newHead = {
     x : snake.x,
     y : snake.y
 };
+let end;
 setInterval(function() {
     if (PAUSE) {
     ctx.fillStyle = "#fff";
@@ -193,18 +239,22 @@ setInterval(function() {
     return;
     }
     if ((selfCollision() || borders()) && !lose) {
-        // console.log("COLLSIION");
-        // ctx.fillStyle = "#fff";
-        // ctx.fillRect(0, 0, WIDTH, HEIGHT);
-        // ctx.fillStyle = "blue";
-        // ctx.font = "30px Comic Sans MS";
-        // let text = (selfCollision()) ? "The Snake ate itself" : "The Snake fell off the screen";
-        // ctx.fillText(text, WIDTH / 2 - 200, HEIGHT / 2);
-
-        // ctx.font = "15px Comic Sans MS";
-        // ctx.fillText("Right click to play again", WIDTH / 2 - 100, HEIGHT / 2 + 150);
+        console.log("COLLSIION");
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = "blue";
+        ctx.font = "30px Comic Sans MS";
+        let text = (selfCollision()) ? "The Snake ate itself" : "The Snake fell off the screen";
+        ctx.fillText(text, WIDTH / 2 - 200, HEIGHT / 2);
+        end = true;
+        ctx.font = "15px Comic Sans MS";
+        ctx.fillText("Right click to play again", WIDTH / 2 - 100, HEIGHT / 2 + 150);
         overScreen = true;
+
         return;
+    }
+    if (end) {
+        localStorage.setItem(new Date(), score);
     }
     update();
     draw();
