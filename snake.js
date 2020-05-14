@@ -70,9 +70,13 @@ document.addEventListener("keydown", (e) => {
         if (e.key == "c") {
             pages = [false, false, true];
         }
+        if (e.key == "a") {
+            localStorage.clear();
+        }
 });
 document.addEventListener("mousedown", () => {
-    if (overScreen) playAgain();
+    if (score > 0) localStorage.setItem(new Date(), score);
+    playAgain();
 })
 let f = {x: snake.x, y: snake.y};
 snake.body.push(f);
@@ -85,7 +89,7 @@ function readStrorage() {
         scores.push(value);
     }
 };
-
+let readScores = false;
 function screens() {
     if (pages[0]) {
         ctx.fillStyle = "#1BFC00";
@@ -98,27 +102,21 @@ function screens() {
     if (pages[2]) {
         ctx.fillStyle = "#1BFC00";
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
-        readStrorage();
         ctx.fillStyle = "white";
         ctx.font = "15px Comic Sans MS";
-        for (let i = 0; i < scores.length; i++) {
+            for (let i = 0; i < scores.length; i++) {
             let x = WIDTH / 2;
-            let y = i * 30;
-            ctx.fillText(`${i} ${scores[i]}`, x, y);
+            let y = (i + 1) * 30;
+            ctx.fillText(`${i + 1} ${scores[i]}`, x, y);
         }
+        if (scores.length === 0) {
+            ctx.fillText("No Scores are found!", WIDTH / 2 - 20, HEIGHT / 2);
+        }
+        readScores = true;
     }
 };
 
 function playAgain() {
-    // score = 0;
-    // for (let i = 0; i < snake.body.length; i++) {
-    //     snake.body.pop();
-    // }
-    // console.log(snake.body.length);
-    // snake.x = WIDTH / 2 - scale / 2;
-    // snake.y = HEIGHT / 2 - scale / 2;
-    // drawFood(food.x, food.y);
-    // lose = true;
     location.reload();
 };
 
@@ -228,8 +226,7 @@ let newHead = {
     x : snake.x,
     y : snake.y
 };
-let end;
-setInterval(function() {
+const loop = function() {
     if (PAUSE) {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -246,18 +243,15 @@ setInterval(function() {
         ctx.font = "30px Comic Sans MS";
         let text = (selfCollision()) ? "The Snake ate itself" : "The Snake fell off the screen";
         ctx.fillText(text, WIDTH / 2 - 200, HEIGHT / 2);
-        end = true;
         ctx.font = "15px Comic Sans MS";
         ctx.fillText("Right click to play again", WIDTH / 2 - 100, HEIGHT / 2 + 150);
         overScreen = true;
-
         return;
-    }
-    if (end) {
-        localStorage.setItem(new Date(), score);
     }
     update();
     draw();
     collision();
     scoring();
-}, ms);
+}
+;
+setInterval(loop, ms);
