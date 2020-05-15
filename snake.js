@@ -10,6 +10,8 @@ const HEIGHT = cvs.height;
 const WIDTH = cvs.width;
 let dir;
 let pages = [true, false, false];
+const highScore = () => Math.max(...scores);
+const gameHighScore = () => (score >= highScore());
 let score = 0;
 let scores = [];
 let availbale = [];
@@ -38,43 +40,46 @@ document.addEventListener("keydown", (e) => {
             snake.speedx = -snake.speed;
             snake.speedy = 0;
         }
-            
-            
+
+
         if ((e.keyCode == 38 || e.key == "w") && dir != "D"){
             dir = "U";
             snake.speedy = -snake.speed;
             snake.speedx = 0;
         }
-            
-            
+
+
         if ((e.keyCode == 39 || e.key == "d") && dir != "L"){
             dir ="R";
             snake.speedx = snake.speed;
             snake.speedy = 0;
         }
-           
+
         if ((e.keyCode == 40 || e.key == "s") && dir != "U") {
             dir = "D";
             snake.speedy = snake.speed;
             snake.speedx = 0;
-        }    
+        }
         if (e.keyCode == 27) {
             pause();
-        } 
+        }
         if(e.key == "p") {
             pages = [false, true, false];
-        }
-        if (e.key == "a") {
-            localStorage.clear();
         }
         if (e.key == "c") {
             pages = [false, false, true];
         }
-        if (e.key == "a") {
+        if (e.key == "o") {
             localStorage.clear();
+        }
+        if (e.key == "q" && score > 0) {
+            if (scores.length > 16) localStorage.clear();
+            if (score > 0) localStorage.setItem(new Date(), score);
+            playAgain();
         }
 });
 document.addEventListener("mousedown", () => {
+    if (scores.length > 16) localStorage.clear();
     if (score > 0) localStorage.setItem(new Date(), score);
     playAgain();
 })
@@ -87,6 +92,22 @@ function readStrorage() {
         let key = localStorage.key(i);
         let value = localStorage.getItem(key);
         scores.push(value);
+    }
+};
+
+function grid() {
+    ctx.beginPath();
+    // Horizantal Lines
+    for (let i = 0; i < WIDTH; i += scale) {
+        ctx.moveTo(0, i);
+        ctx.lineTo(WIDTH, i);
+        ctx.stroke();
+    }
+    // Vertical lines
+    for (let i = 0; i < HEIGHT; i += scale) {
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, HEIGHT);
+        ctx.stroke();
     }
 };
 let readScores = false;
@@ -105,9 +126,9 @@ function screens() {
         ctx.fillStyle = "white";
         ctx.font = "15px Comic Sans MS";
             for (let i = 0; i < scores.length; i++) {
-            let x = WIDTH / 2;
+            xScore = WIDTH / 2;
             let y = (i + 1) * 30;
-            ctx.fillText(`${i + 1} ${scores[i]}`, x, y);
+            ctx.fillText(`(${i + 1}) ${scores[i]}`, xScore, y);
         }
         if (scores.length === 0) {
             ctx.fillText("No Scores are found!", WIDTH / 2 - 20, HEIGHT / 2);
@@ -137,7 +158,7 @@ function pause() {
     ctx.fillStyle = "blue";
     ctx.font = "30px Comic Sans MS";
     ctx.fillText("Paused", WIDTH / 2, HEIGHT / 2);
-  }  
+  }
   else {
       PAUSE = true;
   }
@@ -167,33 +188,46 @@ function borders() {
 
 function drawSnake(x, y) {
     snake.body.forEach((value, i) => {
-        ctx.fillStyle = (i == 0) ? "#001BFF" : "#6081F0";
-        ctx.fillRect(snake.body[i].x, snake.body[i].y, 20, 20);
+        if (!gameHighScore()){
+            ctx.fillStyle = (i == 0) ? "#001BFF" : "#6081F0";
+            ctx.fillRect(snake.body[i].x, snake.body[i].y, 20, 20);
+        }
+        else {
+            ctx.fillStyle = (i == 0) ? "#AF4BA8" : "#FC00E9";
+            ctx.fillRect(snake.body[i].x, snake.body[i].y, 20, 20);
+        }
     });
 };
 function drawFood(x, y) {
-     ctx.fillStyle = "red";
-     ctx.fillRect(x, y, food.width, food.height);
+    if (!gameHighScore()) {
+        ctx.fillStyle = "red";
+        ctx.fillRect(x, y, food.width, food.height);
+    }
+    else {
+        ctx.fillStyle = "#FFFB00";
+        ctx.fillRect(x, y, food.width, food.height);
+    }
 };
 function drawBg() {
     ctx.fillStyle = "#1BFC00";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 };
 function update() {
-    
+
     snake.x += snake.speedx;
     snake.y += snake.speedy;
-    
+
 };
 
 function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     if (pages[1]) drawBg();
     drawSnake(snake.x, snake.y);
+    grid();
     // Growing the snake part 🔥🔥🔥
 
     // if the snake didn't eat the food
-    if (!coll) 
+    if (!coll)
     // Making the newHead object to save the coordinates of the snake's head
     {let newHead = {
         x : snake.x,
@@ -240,8 +274,8 @@ const loop = function() {
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.fillStyle = "blue";
-        ctx.font = "30px Comic Sans MS";
-        let text = (selfCollision()) ? "The Snake ate itself" : "The Snake fell off the screen";
+        ctx.font = "20px Comic Sans MS";
+        let text = (selfCollision()) ? `The Snake ate itself and scored ${score}` : `The Snake fell off the screen and scored ${score}`;
         ctx.fillText(text, WIDTH / 2 - 200, HEIGHT / 2);
         ctx.font = "15px Comic Sans MS";
         ctx.fillText("Right click to play again", WIDTH / 2 - 100, HEIGHT / 2 + 150);
@@ -252,6 +286,5 @@ const loop = function() {
     draw();
     collision();
     scoring();
-}
-;
+};
 setInterval(loop, ms);

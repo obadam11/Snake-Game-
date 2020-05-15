@@ -4,18 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game</title>
-    <style>
-        #canvas {
-            border: 1px solid black;
-            display: block;
-            margin: 0 auto;
-        }
-    </style>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta name="author" content="Obada Mik">
+   <style>
+       #canvas {
+    border: 1px solid black;
+    display: block;
+    margin: 0 auto;
+}
+.content {
+text-align: center;
+}
+   </style>
 </head>
 <body>
+    
     <canvas id="canvas" width="500" height="500" ></canvas>
-    <!-- <script src="app.js"></script> -->
-    <!-- <script src="game.js"></script> -->
+    <div class="content">
+        <h1>Controls</h1>
+        <ul>
+            <h3>1. Use WASD or Arrow keys for moving the snake</h3>
+            <h3>2. Press O to clear your scores</h3>
+            <h3>3. Right/Left click or press the Q key to play again</h3>
+            <h3>4. Use the Esc key for pausing/unpausing</h3>
+        </ul>
+    </div>
     <script src="snake.js"></script>
+    <script src=directions.js></script>
 </body>
 </html>
