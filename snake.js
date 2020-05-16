@@ -3,6 +3,8 @@ let ctx = cvs.getContext("2d");
 let coll = false;
 let PAUSE = false;
 let overScreen = false;
+let playAgainVar = false;
+const bgColor = "#A2FF00";
 let lose = false;
 const scale = 20;
 let ms = 75;
@@ -13,9 +15,32 @@ let pages = [true, false, false];
 const highScore = () => Math.max(...scores);
 const gameHighScore = () => (score >= highScore());
 let score = 0;
-let scores = [];
+// let scores = [];
+let scores = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 let availbale = [];
 for (let i = 0; i <= HEIGHT - scale; i+= 20) availbale.push(i);
+
+// Intializing .mp3 and .png files
+let headUp = new Image();
+headUp.src = "assets/img/upmouth.png";
+
+let headDown = new Image();
+headDown.src = "assets/img/downmouth.png";
+
+let headRight = new Image();
+headRight.src = "assets/img/rightmouth.png";
+
+let headLeft = new Image();
+headLeft.src = "assets/img/leftmouth.png";
+
+let snakeBody = new Image();
+snakeBody.src = "assets/img/snakeimage.png";
+
+let apple = new Image();
+apple.src = "assets/img/sprite_0.png";
+
+let eatingSound = new Audio();
+eatingSound.src = "assets/audio/eating.mp3";
 
 
 let snake = {
@@ -31,8 +56,8 @@ let snake = {
 let food = {
     x : availbale[Math.floor(Math.random() * availbale.length)],
     y : availbale[Math.floor(Math.random() * availbale.length)],
-    width : 20,
-    height : 20
+    width :30,
+    height : 30
 };
 document.addEventListener("keydown", (e) => {
         if ((e.keyCode == 37 || e.key == "a") && dir != "R") {
@@ -63,26 +88,39 @@ document.addEventListener("keydown", (e) => {
         if (e.keyCode == 27) {
             pause();
         }
-        if(e.key == "p") {
-            pages = [false, true, false];
-        }
-        if (e.key == "c") {
-            pages = [false, false, true];
-        }
-        if (e.key == "o") {
-            localStorage.clear();
-        }
-        if (e.key == "q" && score > 0) {
+        if(e.key == "1") {
             if (scores.length > 16) localStorage.clear();
             if (score > 0) localStorage.setItem(new Date(), score);
             playAgain();
+            playAgainVar = false;
+        }
+        if (e.key == "2") {
+            pages = [false, false, true];
+        }
+        if (e.key == "3") {
+            localStorage.clear();
         }
 });
-document.addEventListener("mousedown", () => {
-    if (scores.length > 16) localStorage.clear();
-    if (score > 0) localStorage.setItem(new Date(), score);
-    playAgain();
-})
+
+// Toggling buttons
+let enableGrid = true;
+let gridButton = document.getElementById("grid");
+gridButton.onclick = () => {
+    if (enableGrid) enableGrid = false;
+    else enableGrid = true;
+}
+let enableSound = true;
+let soundButton = document.getElementById("sound");
+soundButton.onclick = () => {
+    if (enableSound) enableSound = false;
+    else enableSound = true;
+
+}
+
+function styleButton(enable, b) {
+    if (enable) b.style.backgroundColor = "green";
+    else b.style.backgroundColor = "red";
+}
 let f = {x: snake.x, y: snake.y};
 snake.body.push(f);
 console.log(snake.body[0].x);
@@ -113,22 +151,24 @@ function grid() {
 let readScores = false;
 function screens() {
     if (pages[0]) {
-        ctx.fillStyle = "#1BFC00";
+        ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.fillStyle = "white";
         ctx.font = "30px Comic Sans MS";
-        ctx.fillText("P for Play", WIDTH / 2 - 50, HEIGHT / 2);
-        ctx.fillText("C for Scores", WIDTH / 2 - 70, HEIGHT / 2 - 100);
+        ctx.fillText("1 for Play", WIDTH / 2 - 50, HEIGHT / 2);
+        ctx.fillText("2 for Scores", WIDTH / 2 - 70, HEIGHT / 2 - 100);
     }
     if (pages[2]) {
-        ctx.fillStyle = "#1BFC00";
+        ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.fillStyle = "white";
         ctx.font = "15px Comic Sans MS";
+        if (scores.length < 16) {
             for (let i = 0; i < scores.length; i++) {
-            xScore = WIDTH / 2;
-            let y = (i + 1) * 30;
-            ctx.fillText(`(${i + 1}) ${scores[i]}`, xScore, y);
+                    let xScore =  WIDTH / 2;
+                    let y = (i + 1) * 30;
+                    ctx.fillText(`(${i + 1}) ${scores[i]}`, xScore, y);
+            }
         }
         if (scores.length === 0) {
             ctx.fillText("No Scores are found!", WIDTH / 2 - 20, HEIGHT / 2);
@@ -138,11 +178,23 @@ function screens() {
 };
 
 function playAgain() {
-    location.reload();
-};
+coll = false;
+PAUSE = false;
+overScreen = false;
+dir = undefined;
+pages = [false, true, false];
+score = 0;
+playAgainVar = true;
+snake.x = WIDTH / 2 - scale / 2;
+snake.y = HEIGHT / 2 - scale / 2;
+snake.speedx = 0;
+snake.speedy = 0;
+snake.body = [{x: snake.x, y: snake.y}];
+}
 
 function collision() {
     if (((snake.body[0].x == food.x) && (snake.body[0].y == food.y))) {
+        console.log("h");
         food.x = availbale[Math.floor(Math.random() * availbale.length)];
         food.y = availbale[Math.floor(Math.random() * availbale.length)];
         drawFood(food.x, food.y);
@@ -188,28 +240,23 @@ function borders() {
 
 function drawSnake(x, y) {
     snake.body.forEach((value, i) => {
-        if (!gameHighScore()){
-            ctx.fillStyle = (i == 0) ? "#001BFF" : "#6081F0";
-            ctx.fillRect(snake.body[i].x, snake.body[i].y, 20, 20);
-        }
-        else {
-            ctx.fillStyle = (i == 0) ? "#AF4BA8" : "#FC00E9";
-            ctx.fillRect(snake.body[i].x, snake.body[i].y, 20, 20);
-        }
+            // ctx.fillStyle = (i == 0) ? "#001BFF" : "#6081F0";
+            if (i == 0 && dir == "U") ctx.drawImage(headUp, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
+            else if (i == 0 && dir == "D") ctx.drawImage(headDown, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
+            else if (i == 0 && dir == "L") ctx.drawImage(headLeft, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
+            else if (i == 0 && dir == "R") ctx.drawImage(headRight, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
+            else if (i == 0 && dir == undefined) ctx.drawImage(headUp, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
+            else {
+                ctx.drawImage(snakeBody, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
+            }
     });
+
 };
 function drawFood(x, y) {
-    if (!gameHighScore()) {
-        ctx.fillStyle = "red";
-        ctx.fillRect(x, y, food.width, food.height);
-    }
-    else {
-        ctx.fillStyle = "#FFFB00";
-        ctx.fillRect(x, y, food.width, food.height);
-    }
+        ctx.drawImage(apple, x - 5, y - 5, food.width, food.height);
 };
 function drawBg() {
-    ctx.fillStyle = "#1BFC00";
+    ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 };
 function update() {
@@ -223,7 +270,7 @@ function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     if (pages[1]) drawBg();
     drawSnake(snake.x, snake.y);
-    grid();
+    if (enableGrid) grid();
     // Growing the snake part 🔥🔥🔥
 
     // if the snake didn't eat the food
@@ -234,12 +281,13 @@ function draw() {
         y : snake.y
     };
 
-    snake.body.unshift(newHead); // adding the object to the begging of the snake's body
+    snake.body.unshift(newHead); // adding the object to the begging of the snake's body (New Head)
     snake.body.pop(); // and then removing the last part from the snak's body.
     // Leaving us with a net parts of 0
 }
 // If the collision occured
 else {
+    if (enableSound) eatingSound.play();
     // Making an object to save the coordinates of the snake's head
     let newHead = {
         x : snake.x,
@@ -253,6 +301,8 @@ else {
 }
     drawFood(food.x, food.y);
     screens();
+    styleButton(enableSound, soundButton);
+    styleButton(enableGrid, gridButton);
 };
 
 console.log(food.x, food.y);
@@ -278,9 +328,9 @@ const loop = function() {
         let text = (selfCollision()) ? `The Snake ate itself and scored ${score}` : `The Snake fell off the screen and scored ${score}`;
         ctx.fillText(text, WIDTH / 2 - 200, HEIGHT / 2);
         ctx.font = "15px Comic Sans MS";
-        ctx.fillText("Right click to play again", WIDTH / 2 - 100, HEIGHT / 2 + 150);
+        ctx.fillText("Press '1' key to play again", WIDTH / 2 - 100, HEIGHT / 2 + 150);
         overScreen = true;
-        return;
+        if (!playAgainVar)return;
     }
     update();
     draw();
