@@ -6,6 +6,7 @@ let overScreen = false;
 let playAgainVar = false;
 const bgColor = "#A2FF00";
 let lose = false;
+let isPlaying = false;
 const scale = 20;
 let ms = 75;
 const HEIGHT = cvs.height;
@@ -15,8 +16,7 @@ let pages = [true, false, false];
 const highScore = () => Math.max(...scores);
 const gameHighScore = () => (score >= highScore());
 let score = 0;
-// let scores = [];
-let scores = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+let scores = [];
 let availbale = [];
 for (let i = 0; i <= HEIGHT - scale; i+= 20) availbale.push(i);
 
@@ -93,8 +93,10 @@ document.addEventListener("keydown", (e) => {
             if (score > 0) localStorage.setItem(new Date(), score);
             playAgain();
             playAgainVar = false;
+            isPlaying = true;
         }
         if (e.key == "2") {
+            // readStorage();
             pages = [false, false, true];
         }
         if (e.key == "3") {
@@ -157,6 +159,7 @@ function screens() {
         ctx.font = "30px Comic Sans MS";
         ctx.fillText("1 for Play", WIDTH / 2 - 50, HEIGHT / 2);
         ctx.fillText("2 for Scores", WIDTH / 2 - 70, HEIGHT / 2 - 100);
+        isPlaying = true;
     }
     if (pages[2]) {
         ctx.fillStyle = bgColor;
@@ -174,6 +177,7 @@ function screens() {
             ctx.fillText("No Scores are found!", WIDTH / 2 - 20, HEIGHT / 2);
         }
         readScores = true;
+        isPlying = false;
     }
 };
 
@@ -190,6 +194,8 @@ snake.y = HEIGHT / 2 - scale / 2;
 snake.speedx = 0;
 snake.speedy = 0;
 snake.body = [{x: snake.x, y: snake.y}];
+food.x = availbale[Math.floor(Math.random() * availbale.length)];
+food.y = availbale[Math.floor(Math.random() * availbale.length)];
 }
 
 function collision() {
@@ -240,7 +246,6 @@ function borders() {
 
 function drawSnake(x, y) {
     snake.body.forEach((value, i) => {
-            // ctx.fillStyle = (i == 0) ? "#001BFF" : "#6081F0";
             if (i == 0 && dir == "U") ctx.drawImage(headUp, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
             else if (i == 0 && dir == "D") ctx.drawImage(headDown, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
             else if (i == 0 && dir == "L") ctx.drawImage(headLeft, snake.body[i].x, snake.body[i].y, snake.width, snake.height);
@@ -318,6 +323,7 @@ const loop = function() {
     ctx.font = "30px Comic Sans MS";
     ctx.fillText("Paused", WIDTH / 2 - 30, HEIGHT / 2);
     return;
+    isPlaying = false;
     }
     if ((selfCollision() || borders()) && !lose) {
         console.log("COLLSIION");
@@ -330,6 +336,7 @@ const loop = function() {
         ctx.font = "15px Comic Sans MS";
         ctx.fillText("Press '1' key to play again", WIDTH / 2 - 100, HEIGHT / 2 + 150);
         overScreen = true;
+        isPlaying = false;
         if (!playAgainVar)return;
     }
     update();
